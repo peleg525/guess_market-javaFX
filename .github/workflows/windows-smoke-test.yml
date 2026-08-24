@@ -1,0 +1,50 @@
+name: Windows smoke test
+
+on:
+  push:
+  workflow_dispatch: {}
+
+jobs:
+  windows-smoke-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Run engine unit tests (XML validation, LMSR appendix example, order-book simulation replay)
+        run: mvn -B -pl gm-engine -am test
+
+      - name: Build with Maven (Windows-native JavaFX jars)
+        run: mvn -B clean package
+
+      - name: Assemble distribution folder (mirrors the submission zip layout)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\lib | Out-Null
+          Copy-Item gm-ui\target\gm-ui.jar dist\gm-ui.jar
+          Copy-Item gm-ui\target\lib\* dist\lib\
+          Copy-Item run.bat dist\run.bat
+
+      - name: Smoke test - the packaged app launches on Windows without crashing
+        shell: pwsh
+        run: |
+          $proc = Start-Process -FilePath "java" -ArgumentList "-jar", "dist\gm-ui.jar" `
+            -RedirectStandardOutput "app-out.txt" -RedirectStandardError "app-err.txt" -PassThru
+          Start-Sleep -Seconds 8
+          $stillRunning = -not $proc.HasExited
+          if (-not $stillRunning) {
+            Get-Content app-err.txt
+            throw "Application exited within 8 seconds of starting (exit code $($proc.ExitCode))"
+          }
+          Stop-Process -Id $proc.Id -Force
+          Start-Sleep -Seconds 1
+          $err = Get-Content app-err.txt -Raw
+          Write-Host $err
+          if ($err -match "Exception in thread" -or $err -match "Error: Missing JavaFX runtime") {
+            throw "Application logged an error while starting"
+          }
