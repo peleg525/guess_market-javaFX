@@ -57,7 +57,6 @@ mvn -pl gm-engine -am test
 
 ## CI
 
-We only have Macs, no Windows machine, but the assignment is graded on Windows 10. So
 `.github/workflows/windows-smoke-test.yml` runs the engine's unit tests, builds the project, and
-launches the packaged jar on a real `windows-latest` GitHub Actions runner on every push, so we can
-be sure it works on Windows without needing to borrow one.
+launches the packaged jar on a real `windows-latest` GitHub Actions runner on every push, as an
+extra check on top of testing it manually on Windows ourselves.
