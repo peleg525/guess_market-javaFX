@@ -1,5 +1,6 @@
 target/
 dist/
+archive/
 GuessMarket-Ex2-submission/
 *.zip
 README.html
