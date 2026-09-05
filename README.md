@@ -41,6 +41,8 @@ the submission zip):
 run.bat
 ```
 
+Requires Java 25 on the PATH (`java -version`).
+
 For local development/testing on a Mac instead of Windows: `mvn -Pmac-dev package`, or
 `mvn -Pmac-dev -pl gm-ui org.openjfx:javafx-maven-plugin:0.0.8:run -Djavafx.mainClass=gm.ui.Main`.
 
